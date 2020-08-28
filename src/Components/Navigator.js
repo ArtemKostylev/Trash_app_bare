@@ -11,39 +11,56 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {connect} from 'react-redux';
+import AddNew from '../Screens/AddNew';
 
 const Tab = createBottomTabNavigator();
 
 const Stack = createStackNavigator();
 
-//TODO Add icons and text to tabs
-class Navigator extends Component {
-  render() {
-    return (
-      <NavigationContainer>
-        {this.props.isLoading === true ? (
-          <Stack.Screen name="SplashScreen" component={SplashScreen} />
-        ) : this.props.token === '' ? (
-          <Stack.Screen name="Login" component={Login} />
-        ) : (
-          <Stack.Screen name="Home" component={Home} />
-        )}
-      </NavigationContainer>
-    );
-  }
-}
+const NwStack = createStackNavigator();
 
 function Home() {
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+      initialRouteName="Map"
+      screenOptions={({route}) => ({
+        tabBarIcon: ({focused, color, size}) => {
+          let iconName;
+          if (route.name === 'News') {
+            iconName = focused ? 'newspaper' : 'newspaper-outline';
+          } else if (route.name === 'Map') {
+            iconName = focused ? 'map' : 'map-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
+          } else if (route.name === 'AddNew') {
+            iconName = focused ? 'add-outline' : 'add';
+          }
+          return <Ionicons name={iconName} color={color} size={size} />;
+        },
+      })}
+      tabBarOptions={{
+        activeTintColor: 'forestgreen',
+        inactiveTintColor: 'gray',
+        labelStyle: {
+          fontSize: 15,
+          fontFamily: 'rubik',
+          fontWeight: 'bold',
+        },
+        keyboardHidesTabBar: true,
+      }}>
+      <Tab.Screen
+        name="News"
+        component={NwScreen}
+        options={{
+          tabBarLabel: 'Новости',
+        }}
+      />
       <Tab.Screen
         name="Map"
         component={MapComponent}
         options={{
           tabBarLabel: 'Карта',
-          tabBarIcon: ({focused, color, size}) => (
-            <Ionicons name="map-outline" color={color} size={size} />
-          ),
         }}
       />
       <Tab.Screen
@@ -51,13 +68,65 @@ function Home() {
         component={Profile}
         options={{
           tabBarLabel: 'Профиль',
-          tabBarIcon: ({color, size}) => (
-            <Ionicons name="home-outline" color={color} size={size} />
-          ),
         }}
+      />
+      <Tab.Screen
+        name="AddNew"
+        component={AddNew}
+        options={{tabBarLabel: 'Добавить'}}
       />
     </Tab.Navigator>
   );
 }
 
-export default Navigator;
+function NwScreen() {
+  return (
+    <>
+      <NwStack.Screen name="List" component={News} />
+      <NwStack.Screen name="Single" component={CardFull} />
+    </>
+  );
+}
+
+//TODO Add icons and text to tabs
+class MyNavigator extends Component {
+  render() {
+    return (
+      <NavigationContainer>
+        <Stack.Navigator>
+          {this.props.isLoading === true ? (
+            <Stack.Screen
+              name="SplashScreen"
+              component={SplashScreen}
+              options={{headerShown: false}}
+            />
+          ) : this.props.token === null ? (
+            <Stack.Screen
+              name="Login"
+              component={Login}
+              options={{headerShown: false}}
+            />
+          ) : (
+            <Stack.Screen
+              name="Home"
+              component={Home}
+              options={{headerShown: false}}
+            />
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }
+}
+
+const mapStateToProps = state => {
+  return {
+    isLoading: state.loading,
+    token: state.token,
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  null,
+)(MyNavigator);

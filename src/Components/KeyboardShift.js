@@ -10,7 +10,7 @@ import {
 
 const {State: TextInputState} = TextInput;
 
-const KEYBOARD_MARGIN = 20;
+const KEYBOARD_MARGIN = 30;
 
 export default class KeyboardShift extends Component {
   state = {

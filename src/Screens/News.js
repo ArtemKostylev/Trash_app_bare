@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {FlatList, View, StyleSheet} from 'react-native';
 import CardContainer from '../Components/CardContainer';
-import AsyncStorage from '@react-native-community/async-storage';
 import {connect} from 'react-redux';
 import {fetchPosts, getPostsFromCache} from '../Scripts/reducer';
 
@@ -60,7 +59,7 @@ const mapDispatchToProps = {
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(Home);
+)(News);
 
 const styles = StyleSheet.create({
   container: {

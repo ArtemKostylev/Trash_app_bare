@@ -1,222 +1,121 @@
 import React, {Component} from 'react';
-import {View, StyleSheet, Text} from 'react-native';
-import MapView, {Marker} from 'react-native-maps';
+import {View, StyleSheet, Text, Dimensions} from 'react-native';
+
+import MapView, {Marker, AnimatedRegion, Animated} from 'react-native-maps';
+
+import Carousel from 'react-native-snap-carousel';
+
 import {connect} from 'react-redux';
 
-const MapStyle = [
-  {
-    elementType: 'geometry',
-    stylers: [
-      {
-        color: '#f5f5f5',
-      },
-    ],
-  },
-  {
-    elementType: 'labels.icon',
-    stylers: [
-      {
-        visibility: 'off',
-      },
-    ],
-  },
-  {
-    elementType: 'labels.text.fill',
-    stylers: [
-      {
-        color: '#616161',
-      },
-    ],
-  },
-  {
-    elementType: 'labels.text.stroke',
-    stylers: [
-      {
-        color: '#f5f5f5',
-      },
-    ],
-  },
-  {
-    featureType: 'administrative.land_parcel',
-    elementType: 'labels',
-    stylers: [
-      {
-        visibility: 'off',
-      },
-    ],
-  },
-  {
-    featureType: 'administrative.land_parcel',
-    elementType: 'labels.text.fill',
-    stylers: [
-      {
-        color: '#bdbdbd',
-      },
-    ],
-  },
-  {
-    featureType: 'poi',
-    elementType: 'geometry',
-    stylers: [
-      {
-        color: '#eeeeee',
-      },
-    ],
-  },
-  {
-    featureType: 'poi',
-    elementType: 'labels.text',
-    stylers: [
-      {
-        visibility: 'off',
-      },
-    ],
-  },
-  {
-    featureType: 'poi',
-    elementType: 'labels.text.fill',
-    stylers: [
-      {
-        color: '#757575',
-      },
-    ],
-  },
-  {
-    featureType: 'poi.park',
-    elementType: 'geometry',
-    stylers: [
-      {
-        color: '#e5e5e5',
-      },
-    ],
-  },
-  {
-    featureType: 'poi.park',
-    elementType: 'labels.text.fill',
-    stylers: [
-      {
-        color: '#9e9e9e',
-      },
-    ],
-  },
-  {
-    featureType: 'road',
-    elementType: 'geometry',
-    stylers: [
-      {
-        color: '#ffffff',
-      },
-    ],
-  },
-  {
-    featureType: 'road.arterial',
-    elementType: 'labels.text.fill',
-    stylers: [
-      {
-        color: '#757575',
-      },
-    ],
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'geometry',
-    stylers: [
-      {
-        color: '#dadada',
-      },
-    ],
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'labels.text.fill',
-    stylers: [
-      {
-        color: '#616161',
-      },
-    ],
-  },
-  {
-    featureType: 'road.local',
-    elementType: 'labels',
-    stylers: [
-      {
-        visibility: 'off',
-      },
-    ],
-  },
-  {
-    featureType: 'road.local',
-    elementType: 'labels.text.fill',
-    stylers: [
-      {
-        color: '#9e9e9e',
-      },
-    ],
-  },
-  {
-    featureType: 'transit.line',
-    elementType: 'geometry',
-    stylers: [
-      {
-        color: '#e5e5e5',
-      },
-    ],
-  },
-  {
-    featureType: 'transit.station',
-    elementType: 'geometry',
-    stylers: [
-      {
-        color: '#eeeeee',
-      },
-    ],
-  },
-  {
-    featureType: 'water',
-    elementType: 'geometry',
-    stylers: [
-      {
-        color: '#c9c9c9',
-      },
-    ],
-  },
-  {
-    featureType: 'water',
-    elementType: 'labels.text.fill',
-    stylers: [
-      {
-        color: '#9e9e9e',
-      },
-    ],
-  },
-];
-//TODO add markers + mb polygons
+const SLIDER_WIDTH = Dimensions.get('window').width;
+const ITEM_WIDTH = Math.round(SLIDER_WIDTH * 0.7);
+const ITEM_HEIGHT = Math.round((ITEM_WIDTH * 3) / 4);
+
+function _renderItem({item, index}) {
+  return (
+    <View style={styles.renderItem}>
+      <Text style={styles.renderItemHeader}>{item.adress}</Text>
+      <Text>{item.text}</Text>
+    </View>
+  );
+}
 
 class MapComponent extends Component {
+  constructor(props) {
+    super(props);
+    const initialRegion = this.props.initialRegion;
+    this.onSnapToItem = this.onSnapToItem.bind(this);
+    this.onRegionChange = this.onRegionChange.bind(this);
+    this.state = {
+      region: new AnimatedRegion({
+        latitude: initialRegion.latitude,
+        longitude: initialRegion.longitude,
+        latitudeDelta: initialRegion.latitudeDelta,
+        longitudeDelta: initialRegion.longitudeDelta,
+      }),
+      currentIndex: 0,
+    };
+  }
+
+  onSnapToItem(index) {
+    const {region} = this.state;
+    const {latitude, longitude} = this.props.posts[index].latlng;
+
+    region
+      .timing({
+        latitude: latitude,
+        longitude: longitude,
+      })
+      .start();
+  }
+
+  onPress(index) {
+    this.carousel.snapToItem(index);
+  }
+
+  onRegionChange(region) {
+    this.setState({region});
+  }
+
   render() {
     return (
-      <MapView
-        style={styles.map}
-        initialRegion={this.props.initialRegion}
-        maxZoomLevel={20}
-        customMapStyle={MapStyle}
-        zoomControlEnabled={true}
-        scrollEnabled={true}>
-        {this.props.posts.map(marker => (
-          <Marker
-            coordinate={marker.latlng}
-            title={marker.title}
-            description={marker.description}
+      <View style={styles.container}>
+        <Animated
+          style={styles.map}
+          region={this.state.region}
+          zoomControlEnabled={false}
+          scrollEnabled={true}
+          ref={ref => (this.map = ref)}>
+          {this.props.posts.map(marker => (
+            <Marker
+              coordinate={marker.latlng}
+              title={marker.title}
+              description={marker.description}
+              onPress={(coordinate, position) => {
+                this.onPress(coordinate, this.props.posts.indexOf(marker));
+              }}
+            />
+          ))}
+        </Animated>
+        <View style={{height: 200}}>
+          <Carousel
+            layout={'default'}
+            ref={ref => (this.carousel = ref)}
+            data={this.props.posts}
+            sliderWidth={SLIDER_WIDTH}
+            sliderHeight={ITEM_HEIGHT}
+            itemWidth={ITEM_WIDTH}
+            itemHeight={ITEM_HEIGHT}
+            renderItem={_renderItem}
+            onSnapToItem={this.onSnapToItem}
           />
-        ))}
-      </MapView>
+        </View>
+      </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
   map: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
+  },
+  renderItem: {
+    backgroundColor: 'gray',
+    borderRadius: 5,
+    height: 200,
+    padding: 50,
+    marginLeft: 2,
+    marginRight: 2,
+    position: 'absolute',
+    bottom: 10,
+  },
+  renderItemHeader: {
+    fontSize: 25,
+  },
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
 });
 

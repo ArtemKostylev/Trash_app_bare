@@ -3,7 +3,6 @@ import {View, Text, Image, StyleSheet} from 'react-native';
 import {restoreUserToken, tokenWrapper} from '../Scripts/reducer';
 import {connect} from 'react-redux';
 
-import {baseURL} from '../../App';
 import Ping from 'react-native-ping';
 
 class SplashScreen extends Component {
@@ -25,13 +24,13 @@ class SplashScreen extends Component {
   }
 
   async componentDidMount() {
-    try {
+  /* try {
       const server_active = await this.connection_test();
       if (server_active === false) {
-        this.props.navigation.navigate('error');
+        //this.props.navigation.navigate('error');
       } else {
         if (this.props.token !== '') {
-          this.props.navigation.navigate('app');
+          //this.props.navigation.navigate('app');
         } else {
           this.props.navigation.navigate('auth');
         }
@@ -40,6 +39,7 @@ class SplashScreen extends Component {
     } catch (e) {
       console.log('Error while restoring user token: ', e);
     }
+  */
   }
   render() {
     return (

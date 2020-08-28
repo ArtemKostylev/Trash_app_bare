@@ -17,13 +17,13 @@ export class User {
 export class InputField extends Component {
   render() {
     return (
-      <View>
-        <Text style={this.props.title_style}>{this.props.title}</Text>
+      <View style={this.props.containerStyle}>
+        <Text style={this.props.titleStyle}>{this.props.title}</Text>
         <TextInput
           clearButtonMode="while-editing"
-          defaultValue={this.props.default_value}
+          defaultValue={this.props.defaultValue}
           placeholder={this.props.placeholder}
-          style={this.props.input_style}
+          style={this.props.inputStyle}
         />
         <View style={styles.divider} />
       </View>
@@ -63,11 +63,11 @@ export default class Profile extends Component {
         />
         <View style={styles.info}>
           <InputField
-            default_value={this.current_user.name}
+            defaultValue={this.current_user.name}
             title="Имя"
             placeholder="Введите ваше имя"
-            input_style={styles.input_style}
-            title_style={styles.input_title}
+            inputStyle={styles.inputStyle}
+            titleStyle={styles.input_title}
           />
         </View>
       </View>
@@ -92,7 +92,7 @@ var styles = StyleSheet.create({
     fontFamily: 'rubik-light',
     fontSize: 18,
   },
-  input_style: {
+  inputStyle: {
     fontFamily: 'rubik-light',
     fontSize: 20,
   },

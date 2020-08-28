@@ -22,7 +22,7 @@ console.disableYellowBox = true; // TODO  Warning supression remove
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  blacklist: ['loading'],
+  blacklist: ['loading', 'region', 'posts'], //TODO clear posts on prod
 };
 
 const client = axios.create({

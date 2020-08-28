@@ -1,6 +1,8 @@
 // Root reducer. Consists of 3 parts: action definitions, reducer itself, action functions
 
 import {tokenExpired, tokenRefreshExpired} from '../Scripts/Helpers';
+import {posts} from './Debug/PostsDebug';
+
 import {AsyncStorage} from 'react-native';
 // Action definitions
 // Async api calls
@@ -31,16 +33,16 @@ const RESTORE_POSTS = 'RESTORE_POSTS';
 // Initial state
 const initial_state = {
   loading: false,
-  token: '',
+  token: 'null',
   user: {},
   status: null,
-  posts: [],
+  posts: posts,
   error: null,
   region: {
     latitude: 64.542931,
-    longitude: 40.537114,
-    latitudeDelta: 0.09,
-    longitudeDelta: 0.09,
+    longitude: 40.537113,
+    latitudeDelta: 0.009,
+    longitudeDelta: 0.009,
   },
 };
 
