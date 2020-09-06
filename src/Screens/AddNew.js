@@ -3,17 +3,32 @@ import {Image, Text, View, StyleSheet} from 'react-native';
 import ImagePicker from 'react-native-image-picker';
 import {TouchableNativeFeedback, TextInput} from 'react-native-gesture-handler';
 import KeyboardShift from '../Components/KeyboardShift';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
 class Button extends Component {
-  image = <Image uri={this.props.uri} style={this.props.imageStyle} />;
+  image = (
+    <Ionicons
+      name={this.props.iconName}
+      size={this.props.iconSize}
+      color={this.props.iconColor}
+    />
+  );
   text = (
-    <Text style={this.props.buttonTextStyle}>{this.props.buttonText}</Text>
+    <>
+      <Ionicons
+        name={'checkmark-circle-outline'}
+        color={'forestgreen'}
+        size={30}
+      />
+      <Text style={this.props.buttonTextStyle}>{this.props.buttonText}</Text>
+    </>
   );
   render() {
     return (
       <TouchableNativeFeedback
         style={this.props.containerStyle}
         onPress={this.props.onPress}>
-        {this.props.uri ? this.iamge : this.text}
+        {this.props.buttonText === undefined ? this.image : this.text}
       </TouchableNativeFeedback>
     );
   }
@@ -31,10 +46,20 @@ class AddNew extends Component {
     };
   }
 
+  openMap() {
+    return ()
+  }
+
+  //TODO add icons to the left
   renderItems() {
     return (
       <View style={styles.container}>
-        {/* map */}
+        <Button
+          containerStyle={styles.picker__container}
+          iconName={'images-outline'}
+          iconSize={60}
+          iconColor={'forestgreen'}
+        />
         <View style={styles.text_input_container}>
           {/* TODO add map picker + geo coder */}
           <TextInput
@@ -51,7 +76,10 @@ class AddNew extends Component {
           <TextInput
             ref={ref => (this.description = ref)}
             placeholder="Описание"
-            onFocus={() => this.setState({desciptionFocused: true})}
+            multiline
+            textAlignVertical={'top'}
+            numberOfLines={5}
+            onFocus={() => this.setState({descriptionFocused: true})}
             onBlur={() => this.setState({descriptionFocused: false})}
             style={
               this.state.descriptionFocused
@@ -61,9 +89,9 @@ class AddNew extends Component {
           />
         </View>
         <Button
-          containerStyle={styles.picker__container}
-          buttonText="Добавить фото"
-          buttonTextStyle={styles.picker__text}
+          containerStyle={styles.submit__container}
+          buttonText="Готово"
+          buttonTextStyle={styles.submit__text}
         />
       </View>
     );
@@ -78,34 +106,51 @@ const styles = StyleSheet.create({
   container: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'flex-end',
+    flex: 1,
   },
   picker__container: {
-    minWidth: 300,
+    marginBottom: 20,
+    backgroundColor: 'gainsboro',
+    minWidth: 150,
+    alignItems: 'center',
+    minHeight: 150,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    borderRadius: 150,
+  },
+  submit__container: {
     minHeight: 40,
+    flexDirection: 'row',
+    flex: 0.2,
     padding: 20,
     margin: 20,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: 'gray',
     alignItems: 'center',
-    flexDirection: 'column',
+    //flexDirection: 'column',
     justifyContent: 'center',
   },
-  picker__text: {},
+  submit__text: {
+    fontFamily: 'rubik',
+    fontSize: 20,
+    color: 'forestgreen',
+    marginLeft: 10,
+  },
   text_input_container: {
     minWidth: 300,
   },
   text_input_unfocused: {
     marginTop: 10,
     fontSize: 20,
+    borderRadius: 5,
     borderBottomWidth: 2,
     borderBottomColor: 'gray',
+    backgroundColor: 'gainsboro',
   },
   text_input_focused: {
     marginTop: 10,
+    fontSize: 20,
     borderBottomWidth: 2,
-    borderBottomColor: 'black',
+    borderBottomColor: 'forestgreen',
   },
   button__container: {
     minWidth: 300,

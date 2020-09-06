@@ -17,7 +17,7 @@ class News extends Component {
       .then(() => this.setState({refreshing: false}));
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     //this.setState({loading: true});
     if (this.props.posts.length === 0) {
       console.log('null');
