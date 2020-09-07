@@ -24,6 +24,7 @@ class MapComponent extends Component {
   constructor(props) {
     super(props);
     const initialRegion = this.props.initialRegion;
+    this.onPress = this.onPress.bind(this);
     this.onSnapToItem = this.onSnapToItem.bind(this);
     this.onRegionChange = this.onRegionChange.bind(this);
     this.state = {
@@ -68,11 +69,12 @@ class MapComponent extends Component {
           ref={ref => (this.map = ref)}>
           {this.props.posts.map(marker => (
             <Marker
+              key={marker.key}
               coordinate={marker.latlng}
               title={marker.title}
               description={marker.description}
               onPress={(coordinate, position) => {
-                this.onPress(coordinate, this.props.posts.indexOf(marker));
+                this.onPress(this.props.posts.indexOf(marker));
               }}
             />
           ))}

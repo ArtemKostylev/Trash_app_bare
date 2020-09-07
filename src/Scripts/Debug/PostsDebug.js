@@ -1,6 +1,5 @@
 const posts = [
   {
-    id: 1,
     adress: 'Ломоносова 84/1',
     time: '18:54',
     image: '',
@@ -11,7 +10,6 @@ const posts = [
     },
   },
   {
-    id: 2,
     adress: 'Ломоносова 84/1',
     time: '18:54',
     image: '',
@@ -22,7 +20,6 @@ const posts = [
     },
   },
   {
-    id: 3,
     adress: 'Ломоносова 84/1',
     time: '18:54',
     image: '',
@@ -33,7 +30,6 @@ const posts = [
     },
   },
   {
-    id: 4,
     adress: 'Ломоносова 84/1',
     time: '18:54',
     image: '',
