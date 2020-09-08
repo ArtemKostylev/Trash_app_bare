@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {View, Text, Image, StyleSheet} from 'react-native';
+import {toggleLoading} from '../Scripts/reducer';
 import {restoreUserToken, tokenWrapper} from '../Scripts/reducer';
 import {connect} from 'react-redux';
 
@@ -24,22 +25,20 @@ class SplashScreen extends Component {
   }
 
   async componentDidMount() {
-  /* try {
+    try {
       const server_active = await this.connection_test();
       if (server_active === false) {
-        //this.props.navigation.navigate('error');
+        //error
       } else {
-        if (this.props.token !== '') {
-          //this.props.navigation.navigate('app');
+        if (this.props.token !== null) {
+          this.props.toggleLoading(false);
         } else {
-          this.props.navigation.navigate('auth');
+          this.props.toggleLoading(false);
         }
-        this.props.navigation.navigate('app');
       }
     } catch (e) {
       console.log('Error while restoring user token: ', e);
     }
-  */
   }
   render() {
     return (
@@ -57,12 +56,8 @@ const mapStateToProps = state => {
   };
 };
 
-const mapDispatchToProps = dispatch => {
-  return {
-    restoreUserToken: (params, token) => {
-      return dispatch(tokenWrapper(restoreUserToken, params, token));
-    },
-  };
+const mapDispatchToProps = {
+  toggleLoading: toggleLoading,
 };
 
 export default connect(

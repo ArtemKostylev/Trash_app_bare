@@ -1,3 +1,6 @@
+/* eslint-disable handle-callback-err */
+/* eslint-disable no-alert */
+/* eslint-disable react-native/no-inline-styles */
 import React, {Component} from 'react';
 import {
   Image,
@@ -7,6 +10,7 @@ import {
   TouchableOpacity,
   TextInput,
   Button,
+  Alert,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import ImagePicker from 'react-native-image-picker';
@@ -16,6 +20,7 @@ import MapView, {Marker} from 'react-native-maps';
 import {connect} from 'react-redux';
 import GetLocation from 'react-native-get-location';
 import Geocoder from 'react-native-geocoding';
+import {createPost} from '../Scripts/reducer';
 
 class MyButton extends Component {
   image = (
@@ -39,7 +44,7 @@ class MyButton extends Component {
     return (
       <TouchableOpacity
         style={this.props.containerStyle}
-        onPress={this.props.onPress}>
+        onPress={() => this.props.onPress()}>
         {this.props.buttonText === undefined ? this.image : this.text}
       </TouchableOpacity>
     );
@@ -49,13 +54,19 @@ class MyButton extends Component {
 class AddNew extends Component {
   constructor(props) {
     super(props);
-
+    this.checForm = this.checkForm.bind(this);
     this.renderItems = this.renderItems.bind(this);
     this.openMap = this.openMap.bind(this);
+    this.submit = this.submit.bind(this);
     this.state = {
       marker: {
         latitude: 0,
         longitude: 0,
+      },
+      errors: {
+        marker: false,
+        text: false,
+        pic: false,
       },
       address: '',
       region: this.props.initialRegion,
@@ -63,6 +74,7 @@ class AddNew extends Component {
       descriptionFocused: false,
       modalShown: false,
       picSource: '',
+      text: '',
     };
   }
 
@@ -115,8 +127,75 @@ class AddNew extends Component {
     });
   }
 
+  checkForm() {
+    var errors = this.state.errors;
+    if (this.state.address === '') {
+      errors.marker = true;
+    } else {
+      errors.marker = false;
+    }
+    if (this.state.text === '' || this.state.text.length > 200) {
+      errors.text = true;
+    } else {
+      errors.text = false;
+    }
+    if (
+      this.state.picSource.uri === '' ||
+      this.state.picSource.uri === undefined
+    ) {
+      errors.pic = true;
+    } else {
+      errors.pic = false;
+    }
+    this.setState({errors});
+    if (errors.pic === true || errors.text === true || errors.marker === true) {
+      return false;
+    }
+    return true;
+  }
+
   submit() {
-    //TODO create redux action to send on server
+    if (!this.checkForm()) {
+      return;
+    }
+    let data = {
+      latitude: this.state.marker.latitude,
+      longitude: this.state.marker.latitude,
+      address: this.state.address,
+      author: this.props.user.id,
+      text: this.state.text,
+    };
+    const formData = new FormData();
+    formData.append('latitude', data.latitude.toFixed(9));
+    formData.append('longitude', data.longitude.toFixed(9));
+    formData.append('address', data.address);
+    formData.append('author', data.author);
+    formData.append('text', data.text);
+    formData.append('image', {
+      uri: this.state.picSource.uri,
+      type: 'image/jpeg',
+      name: 'imagename.jpg',
+    });
+
+    fetch('http://192.168.3.7:8000/api/post/', {
+      method: 'post',
+      headers: {
+        'Content-Type':
+          'multipart/form-data; boundary=--------------------------428827025462392255578998',
+        Authorization: `Bearer ${this.props.token}`,
+      },
+      body: formData,
+    })
+      .then(response => {
+        if (response.status === 200) {
+          Alert.alert('Успех!', 'Пост добавлен', [
+            {text: 'OK', onPress: () => this.props.navigation.goBack()},
+          ]);
+        }
+      })
+      .catch(err => {
+        alert('Ошибка загрузки поста!');
+      });
   }
 
   onMapPress(e) {
@@ -152,10 +231,20 @@ class AddNew extends Component {
   );
 
   photo = () => {
-    return <Image source={this.state.picSource} style={{width: 200, height: 200}}/>;
+    return (
+      <Image source={this.state.picSource} style={{width: 200, height: 200}} />
+    );
   };
 
   renderItems() {
+    var errorIcon = (
+      <Ionicons
+        name="alert-circle-outline"
+        color="red"
+        size={30}
+        style={{position: 'absolute', left: 20, top: 20}}
+      />
+    );
     return (
       <View style={styles.container}>
         <Modal
@@ -186,16 +275,24 @@ class AddNew extends Component {
             </View>
           </View>
         </Modal>
+        <View style={{flexDirection:'row'}}>
         {this.state.picSource === '' ? this.picker : this.photo()}
+        {this.state.errors.pic ? (
+          <Ionicons name="alert-circle-outline" color="red" size={30} style={{position: 'absolute', right: -30}}/>
+        ) : (
+          <></>
+        )}
+        </View>
         <View style={styles.text_input_container}>
           {/* add location button */}
           <View
             style={{
               flexDirection: 'row',
               width: '100%',
-              justifyContent: 'space-evenly',
+              justifyContent: 'flex-start',
               alignItems: 'center',
             }}>
+            {this.state.errors.marker ? errorIcon : <></>}
             <TextInput
               ref={ref => (this.adress = ref)}
               placeholder="Адрес"
@@ -215,27 +312,38 @@ class AddNew extends Component {
               <Ionicons name="pin-outline" color="forestgreen" size={40} />
             </TouchableOpacity>
           </View>
-
-          <TextInput
-            ref={ref => (this.description = ref)}
-            placeholder="Описание"
-            multiline
-            textAlignVertical={'top'}
-            numberOfLines={5}
-            onFocus={() => this.setState({descriptionFocused: true})}
-            onBlur={() => this.setState({descriptionFocused: false})}
-            style={
-              this.state.descriptionFocused
-                ? styles.text_input_focused
-                : styles.text_input_unfocused
-            }
-          />
+          <View
+            style={{
+              flexDirection: 'row',
+              width: '100%',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            {this.state.errors.text ? errorIcon : <></>}
+            <TextInput
+              ref={ref => (this.description = ref)}
+              placeholder="Описание"
+              multiline
+              textAlignVertical={'top'}
+              numberOfLines={5}
+              onChangeText={text => this.setState({text: text})}
+              onFocus={() => this.setState({descriptionFocused: true})}
+              onBlur={() => this.setState({descriptionFocused: false})}
+              style={
+                this.state.descriptionFocused
+                  ? styles.text_input_focused
+                  : styles.text_input_unfocused
+              }
+            />
+          </View>
+          <View style={{marginTop: 40}}>
+            <Button
+              onPress={() => this.submit()}
+              title="Сохранить"
+              color="forestgreen"
+            />
+          </View>
         </View>
-        <MyButton
-          containerStyle={styles.submit__container}
-          buttonText="Готово"
-          buttonTextStyle={styles.submit__text}
-        />
       </View>
     );
   }
@@ -253,7 +361,7 @@ const styles = StyleSheet.create({
   container: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     flex: 1,
   },
   picker__container: {
@@ -299,14 +407,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'gainsboro',
   },
   text_input_focused: {
-    width: '70%',
+    width: '60%',
     marginTop: 10,
     fontSize: 20,
     borderBottomWidth: 2,
     borderBottomColor: 'forestgreen',
   },
   address_input_unfocused: {
-    flex: 0.7,
+    width: '60%',
+    marginLeft: '15%',
     marginTop: 10,
     fontSize: 20,
     borderRadius: 5,
@@ -329,10 +438,16 @@ const styles = StyleSheet.create({
 const mapStateToProps = state => {
   return {
     initialRegion: state.region,
+    user: state.user,
+    token: state.token,
   };
+};
+
+const mapDispatchToProps = {
+  createPost: createPost,
 };
 
 export default connect(
   mapStateToProps,
-  null,
+  mapDispatchToProps,
 )(AddNew);

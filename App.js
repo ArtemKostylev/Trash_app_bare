@@ -15,28 +15,40 @@ import {PersistGate} from 'redux-persist/integration/react';
 import {composeWithDevTools} from 'redux-devtools-extension';
 
 import Navigator from './src/Components/Navigator';
-export const baseURL = 'http://192.168.42.233:8000';
+export const baseURL = 'http://192.168.3.7:8000';
 
 console.disableYellowBox = true; // TODO  Warning supression remove
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  blacklist: ['loading', 'region', 'posts'], //TODO clear posts on prod
+  blacklist: ['isLoading', 'loading', 'region', 'status'], //TODO clear posts on prod
 };
 
+const middlewareConfig = {
+  interceptors: {
+    request: [
+      {
+        success: function({getState, dispatch, getSourceAction}, req) {
+          console.log(req);
+          return req;
+        },
+      },
+    ],
+  },
+};
 const client = axios.create({
   baseURL: baseURL,
   responseType: 'json',
 });
 
-const __axiosMiddleware = axiosMiddleware(client);
+const __axiosMiddleware = axiosMiddleware(client, middlewareConfig);
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 const store = createStore(
   persistedReducer,
-  composeWithDevTools(applyMiddleware(__axiosMiddleware, thunk)),
+  composeWithDevTools(applyMiddleware(__axiosMiddleware)),
 );
 
 const persistor = persistStore(store);

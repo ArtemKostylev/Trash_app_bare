@@ -13,7 +13,6 @@ import {connect} from 'react-redux';
 //TODO rework into searchbar
 class Header extends Component {
   async logout() {
-    await AsyncStorage.removeItem('userToken');
     this.props.signOut();
   }
 

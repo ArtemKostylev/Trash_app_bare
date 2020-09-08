@@ -9,13 +9,17 @@ import {
 } from 'react-native';
 import {TouchableNativeFeedback} from 'react-native';
 import KeyboardShift from '../Components/KeyboardShift';
-import {fetchToken, signIn} from '../Scripts/reducer';
+import {
+  fetchToken,
+  signIn,
+  getUserData,
+  thunkedUserData,
+} from '../Scripts/reducer';
 import {connect} from 'react-redux';
 
 class Login extends Component {
   constructor(props) {
     super(props);
-    this.auth = this.auth.bind(this);
   }
 
   state = {
@@ -25,20 +29,22 @@ class Login extends Component {
     usernameFocused: false,
   };
 
-  async auth() {
+  auth = async () => {
     console.log('auth started');
     await this.props.fetchToken(
       this.state.phone_number.trim(),
       this.state.password.trim(),
     );
     if (this.props.status === 200) {
+      await this.props.getUserData(
+        this.props.token,
+        this.state.phone_number.trim(),
+      );
       this.props.signIn();
-      //this.props.getUserData(this.state.phone_number.trim());
-      this.props.navigation.navigate('app');
     } else {
       Alert.alert('Ошибка', 'Неправильно введен логин или пароль');
     }
-  }
+  };
 
   render() {
     let animation = (
@@ -110,17 +116,17 @@ class Login extends Component {
 
 const mapStateToProps = state => {
   return {
-    token: state.token,
     loading: state.loading,
     error: state.error,
     status: state.status,
-    user: state.user,
+    token: state.token,
   };
 };
 
 const mapDispatchToProps = {
   fetchToken: fetchToken,
   signIn: signIn,
+  getUserData,
 };
 
 export default connect(

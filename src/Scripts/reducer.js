@@ -2,7 +2,7 @@
 
 import {tokenExpired, tokenRefreshExpired} from '../Scripts/Helpers';
 import {posts} from './Debug/PostsDebug';
-
+import axios from 'axios';
 import {AsyncStorage} from 'react-native';
 // Action definitions
 // Async api calls
@@ -23,20 +23,35 @@ const REFRESH_USER_TOKEN = 'REFRESH_USER_TOKEN';
 const REFRESH_USER_TOKEN_SUCCESS = 'REFRESH_USER_TOKEN_SUCCESS';
 const REFRESH_USER_TOKEN_FAIL = 'REFRESH_USER_TOKEN_FAIL';
 
+const UPDATE_USER_DATA = 'UPDATE_USER_DATA';
+const UPDATE_USER_DATA_FAIL = 'UPDATE_USER_DATA_FAIL';
+const UPDATE_USER_DATA_SUCCESS = 'UPDATE_USER_DATA_SUCCESS';
+
+const CREATE_POST = 'CREATE_POST';
+const CREATE_POST_SUCCESS = 'CREATE_POST_SUCCESS';
+const CREATE_POST_FAIL = 'CREATE_POST_FAIL';
+
 // Sync actions
 const USER_SIGN_IN = 'USER_SIGN_IN';
 const USER_SIGN_OUT = 'USER_SIGN_OUT';
 const CLEAR_TOKEN = 'CLEAR_TOKEN';
-
+const TOGGLE_LOADING = 'TOGGLE_LOADING';
 const RESTORE_POSTS = 'RESTORE_POSTS';
 
 // Initial state
 const initial_state = {
   loading: false,
-  token: 'null',
-  user: {},
+  isLoading: true,
+  token: null,
+  loggedIn: false,
+  user: {
+    username: 'shkri',
+    email: 'brukset29@gmail.com',
+    name: 'Артём',
+    surname: 'Костылев',
+  },
   status: null,
-  posts: posts,
+  posts: [],
   error: null,
   region: {
     latitude: 64.542931,
@@ -63,6 +78,7 @@ export default function rootReducer(state = initial_state, action) {
       return {
         ...state,
         loading: false,
+        status: 0,
         error: 'Error while requesting auth token',
       };
 
@@ -86,6 +102,7 @@ export default function rootReducer(state = initial_state, action) {
       return {
         ...state,
         loading: false,
+        status: action.payload.status,
         error: 'Error while updating user data',
       };
 
@@ -101,12 +118,28 @@ export default function rootReducer(state = initial_state, action) {
       return {...state, loading: false, error: 'errorText'};
     // sync actions
 
+    case UPDATE_USER_DATA:
+      return {...state, loading: true};
+    case UPDATE_USER_DATA_SUCCESS:
+      return {...state, user: action.payload.data};
+    case UPDATE_USER_DATA_FAIL:
+      return {...state, error: 'Error while updating user data'};
+
+    case CREATE_POST:
+      return {...state, loading: true};
+    case CREATE_POST_SUCCESS:
+      return {...state, loading: false, status: action.payload.status};
+    case CREATE_POST_FAIL:
+      return {...state, loading: false, status: 0, error: action.error};
+
     case USER_SIGN_IN:
-      return {...state, signedIn: true};
+      return {...state, loggedIn: true};
     case USER_SIGN_OUT:
-      return {initial_state};
+      return {...state, loggedIn: false};
     case RESTORE_POSTS:
       return {...state, posts: action.posts};
+    case TOGGLE_LOADING:
+      return {...state, isLoading: action.loading};
     case CLEAR_TOKEN:
       return {...state, token: initial_state.token, signedIn: false};
     // default action
@@ -127,27 +160,30 @@ export function getToken() {
 export function fetchToken(phone_number, password) {
   /* return async function(dispatch) {
     dispatch(getToken());
-    axios
-      .post(baseURL + '/api/obtain-auth-token/', {
+    await axios
+      .post('192.168.2.7:8000' + '/api/obtain-auth-token/', {
         phone_number: phone_number,
         password: password,
       })
       .then(responce => {
         if (responce.status === 200) {
-          return {
+          console.log(1);
+          dispatch({
             type: 'GET_USER_TOKEN_SUCCESS',
             data: responce.data,
-          };
+          });
         } else {
-          return {
+          dispatch({
             type: 'GET_USER_TOKEN_FAIL',
-          };
+          });
         }
       })
       .catch(error => {
-        return {
+        console.log(error);
+        dispatch({
           type: 'GET_USER_TOKEN_FAIL',
-        };
+          error: error,
+        });
       });
   }; */
   return {
@@ -162,6 +198,13 @@ export function fetchToken(phone_number, password) {
         },
       },
     },
+  };
+}
+
+export function toggleLoading(loading) {
+  return {
+    type: 'TOGGLE_LOADING',
+    loading: loading,
   };
 }
 
@@ -184,9 +227,6 @@ export function refreshToken(token) {
   };
 }
 
-export function thunkedUserData() {}
-
-//TODO change to thunk
 export function getUserData(token, pk) {
   return {
     types: ['GET_USER_DATA', 'GET_USER_DATA_SCCESS', 'GET_USER_DATA_FAIL'],
@@ -204,6 +244,25 @@ export function getUserData(token, pk) {
     },
   };
 }
+
+export function saveUserData(token, user) {
+  return {
+    types: ['SAVE_USER_DATA', 'SAVE_USER_DATA_SCCESS', 'SAVE_USER_DATA_FAIL'],
+    payload: {
+      request: {
+        method: 'put',
+        url: '/api/user/',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          ...user,
+        },
+      },
+    },
+  };
+}
+
 //actions with posts list
 
 //TODO PAGINATION
@@ -236,6 +295,7 @@ export function signOut() {
 }
 
 export function signIn() {
+  console.log('sign in');
   return {type: 'USER_SIGN_IN'};
 }
 
@@ -272,5 +332,24 @@ export function tokenWrapper(action, params, token) {
 
     dispatch(action([...params]));
     return Promise.resolve(true);
+  };
+}
+
+export function createPost(token, formData) {
+  return {
+    types: ['CREATE_POST', 'CREATE_POST_SUCCESS', 'CREATE_POST_FAIL'],
+    payload: {
+      request: {
+        method: 'post',
+        url: '/api/post/',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+        data: {
+          formData,
+        },
+      },
+    },
   };
 }

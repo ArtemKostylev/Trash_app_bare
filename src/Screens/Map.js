@@ -1,11 +1,18 @@
 import React, {Component} from 'react';
-import {View, StyleSheet, Text, Dimensions} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  Dimensions,
+  ActivityIndicator,
+} from 'react-native';
 
 import MapView, {Marker, AnimatedRegion, Animated} from 'react-native-maps';
 
 import Carousel from 'react-native-snap-carousel';
-
+import Geocoder from 'react-native-geocoding';
 import {connect} from 'react-redux';
+import {fetchPosts} from '../Scripts/reducer';
 
 const SLIDER_WIDTH = Dimensions.get('window').width;
 const ITEM_WIDTH = Math.round(SLIDER_WIDTH * 0.7);
@@ -14,7 +21,7 @@ const ITEM_HEIGHT = Math.round((ITEM_WIDTH * 3) / 4);
 function _renderItem({item, index}) {
   return (
     <View style={styles.renderItem}>
-      <Text style={styles.renderItemHeader}>{item.adress}</Text>
+      <Text style={styles.renderItemHeader}>{item.address}</Text>
       <Text>{item.text}</Text>
     </View>
   );
@@ -38,9 +45,14 @@ class MapComponent extends Component {
     };
   }
 
+  componentDidMount() {
+    Geocoder.init('AIzaSyD_OTKqeqysKfFsLTyLpubBEsFIPQEfztQ', {language: 'ru'});
+    this.props.fetchPosts(this.props.token);
+  }
+
   onSnapToItem(index) {
     const {region} = this.state;
-    const {latitude, longitude} = this.props.posts[index].latlng;
+    const {latitude, longitude} = this.props.posts[index];
 
     region
       .timing({
@@ -59,8 +71,8 @@ class MapComponent extends Component {
   }
 
   render() {
-    return (
-      <View style={styles.container}>
+    const renderItem = (
+      <>
         <Animated
           style={styles.map}
           region={this.state.region}
@@ -69,10 +81,12 @@ class MapComponent extends Component {
           ref={ref => (this.map = ref)}>
           {this.props.posts.map(marker => (
             <Marker
-              key={marker.key}
-              coordinate={marker.latlng}
-              title={marker.title}
-              description={marker.description}
+              key={marker.id}
+              coordinate={{
+                latitude: parseFloat(marker.latitude),
+                longitude: parseFloat(marker.longitude),
+              }}
+              title={marker.text}
               onPress={(coordinate, position) => {
                 this.onPress(this.props.posts.indexOf(marker));
               }}
@@ -92,6 +106,20 @@ class MapComponent extends Component {
             onSnapToItem={this.onSnapToItem}
           />
         </View>
+      </>
+    );
+
+    let animation = (
+      <View style={styles.animation_background}>
+        <ActivityIndicator size="large" color="#ffffff" />
+      </View>
+    );
+
+    console.log(this.props.loading);
+
+    return (
+      <View style={styles.container}>
+        {this.props.loading ? animation : renderItem}
       </View>
     );
   }
@@ -125,10 +153,14 @@ const mapStateToProps = state => {
   return {
     initialRegion: state.region,
     posts: state.posts,
+    token: state.token,
+    loading: state.loading,
   };
 };
-
+const mapDispatchToProps = {
+  fetchPosts: fetchPosts,
+};
 export default connect(
   mapStateToProps,
-  null,
+  mapDispatchToProps,
 )(MapComponent);

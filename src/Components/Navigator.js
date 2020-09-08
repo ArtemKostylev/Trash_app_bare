@@ -100,7 +100,7 @@ class MyNavigator extends Component {
               component={SplashScreen}
               options={{headerShown: false}}
             />
-          ) : this.props.token === null ? (
+          ) : !this.props.loggedIn ? (
             <Stack.Screen
               name="Login"
               component={Login}
@@ -121,8 +121,8 @@ class MyNavigator extends Component {
 
 const mapStateToProps = state => {
   return {
-    isLoading: state.loading,
-    token: state.token,
+    isLoading: state.idLoading,
+    loggedIn: state.loggedIn,
   };
 };
 
