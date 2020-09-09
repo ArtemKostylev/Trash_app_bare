@@ -1,9 +1,7 @@
 // Root reducer. Consists of 3 parts: action definitions, reducer itself, action functions
 
 import {tokenExpired, tokenRefreshExpired} from '../Scripts/Helpers';
-import {posts} from './Debug/PostsDebug';
-import axios from 'axios';
-import {AsyncStorage} from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage'
 // Action definitions
 // Async api calls
 // User actions
@@ -27,9 +25,13 @@ const UPDATE_USER_DATA = 'UPDATE_USER_DATA';
 const UPDATE_USER_DATA_FAIL = 'UPDATE_USER_DATA_FAIL';
 const UPDATE_USER_DATA_SUCCESS = 'UPDATE_USER_DATA_SUCCESS';
 
-const CREATE_POST = 'CREATE_POST';
-const CREATE_POST_SUCCESS = 'CREATE_POST_SUCCESS';
-const CREATE_POST_FAIL = 'CREATE_POST_FAIL';
+const CREATE_USER = 'CREATE_USER';
+const CREATE_USER_SUCCESS = 'CREATE_USER_SUCCESS';
+const CREATE_USER_FAIL = 'CREATE_USER_FAIL';
+
+const DELETE_POST = 'CREATE_POST';
+const DELETE_POST_SUCCESS = 'CREATE_POST_SUCCESS';
+const DELETE_POST_FAIL = 'CREATE_POST_FAIL';
 
 // Sync actions
 const USER_SIGN_IN = 'USER_SIGN_IN';
@@ -41,15 +43,10 @@ const RESTORE_POSTS = 'RESTORE_POSTS';
 // Initial state
 const initial_state = {
   loading: false,
-  isLoading: true,
+  isLoading: false,
   token: null,
   loggedIn: false,
-  user: {
-    username: 'shkri',
-    email: 'brukset29@gmail.com',
-    name: 'Артём',
-    surname: 'Костылев',
-  },
+  user: {},
   status: null,
   posts: [],
   error: null,
@@ -125,17 +122,31 @@ export default function rootReducer(state = initial_state, action) {
     case UPDATE_USER_DATA_FAIL:
       return {...state, error: 'Error while updating user data'};
 
-    case CREATE_POST:
+    case DELETE_POST:
       return {...state, loading: true};
-    case CREATE_POST_SUCCESS:
+    case DELETE_POST_SUCCESS:
       return {...state, loading: false, status: action.payload.status};
-    case CREATE_POST_FAIL:
+    case DELETE_POST_FAIL:
       return {...state, loading: false, status: 0, error: action.error};
 
+    case CREATE_USER:
+      return {...state, loading: true};
+    case CREATE_USER_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        user: action.payload.data.user,
+        token: action.payload.data.token,
+        loggedIn: true,
+      };
+    case CREATE_USER_FAIL:
+      return {...state, loading: true, error: action.payload.error};
     case USER_SIGN_IN:
       return {...state, loggedIn: true};
-    case USER_SIGN_OUT:
+    case USER_SIGN_OUT: {
+      AsyncStorage.removeItem('persist:root');
       return {...state, loggedIn: false};
+    }
     case RESTORE_POSTS:
       return {...state, posts: action.posts};
     case TOGGLE_LOADING:
@@ -158,34 +169,6 @@ export function getToken() {
 }
 
 export function fetchToken(phone_number, password) {
-  /* return async function(dispatch) {
-    dispatch(getToken());
-    await axios
-      .post('192.168.2.7:8000' + '/api/obtain-auth-token/', {
-        phone_number: phone_number,
-        password: password,
-      })
-      .then(responce => {
-        if (responce.status === 200) {
-          console.log(1);
-          dispatch({
-            type: 'GET_USER_TOKEN_SUCCESS',
-            data: responce.data,
-          });
-        } else {
-          dispatch({
-            type: 'GET_USER_TOKEN_FAIL',
-          });
-        }
-      })
-      .catch(error => {
-        console.log(error);
-        dispatch({
-          type: 'GET_USER_TOKEN_FAIL',
-          error: error,
-        });
-      });
-  }; */
   return {
     types: ['GET_USER_TOKEN', 'GET_USER_TOKEN_SUCCESS', 'GET_USER_TOKEN_FAIL'],
     payload: {
@@ -263,10 +246,6 @@ export function saveUserData(token, user) {
   };
 }
 
-//actions with posts list
-
-//TODO PAGINATION
-//Downloads posts, which were updated after last fetch
 export function fetchPosts(token) {
   return {
     types: ['FETCH_POSTS', 'FETCH_POSTS_SUCCESS', 'FETCH_POSTS_FAIL'],
@@ -335,19 +314,36 @@ export function tokenWrapper(action, params, token) {
   };
 }
 
-export function createPost(token, formData) {
+export function deletePost(token, id) {
   return {
-    types: ['CREATE_POST', 'CREATE_POST_SUCCESS', 'CREATE_POST_FAIL'],
+    types: ['DELETE_POST', 'DELETE_POST_SUCCESS', 'DELETE_POST_FAIL'],
     payload: {
       request: {
-        method: 'post',
+        method: 'delete',
         url: '/api/post/',
         headers: {
           Authorization: `Bearer ${token}`,
-          Accept: 'application/json',
         },
+        params: {
+          pk: id,
+        },
+      },
+    },
+  };
+}
+
+export function register(data) {
+  return {
+    types: ['CREATE_USER', 'CREATE_USER_SUCCESS', 'CREATE_USER_FAIL'],
+    payload: {
+      request: {
+        method: 'post',
+        url: '/api/create-user/',
         data: {
-          formData,
+          phone_number: data.username,
+          password: data.password,
+          first_name: data.name,
+          last_name: data.surname,
         },
       },
     },

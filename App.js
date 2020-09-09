@@ -1,13 +1,11 @@
 import 'react-native-gesture-handler';
 import React, {Component} from 'react';
-import {View, Text} from 'react-native';
 import {Provider} from 'react-redux';
 import axios from 'axios';
 import axiosMiddleware from 'redux-axios-middleware';
 
 import rootReducer from './src/Scripts/reducer';
 import {applyMiddleware, createStore} from 'redux';
-import thunk from 'redux-thunk';
 import AsyncStorage from '@react-native-community/async-storage';
 
 import {persistStore, persistReducer} from 'redux-persist';
@@ -15,14 +13,15 @@ import {PersistGate} from 'redux-persist/integration/react';
 import {composeWithDevTools} from 'redux-devtools-extension';
 
 import Navigator from './src/Components/Navigator';
+import SplashScreen from './src/Screens/SplashScreen';
 export const baseURL = 'http://192.168.3.7:8000';
 
-console.disableYellowBox = true; // TODO  Warning supression remove
+console.disableYellowBox = true;
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  blacklist: ['isLoading', 'loading', 'region', 'status'], //TODO clear posts on prod
+  blacklist: ['isLoading', 'loading', 'region', 'status'],
 };
 
 const middlewareConfig = {
@@ -57,7 +56,7 @@ export default class App extends Component {
   render() {
     return (
       <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
+        <PersistGate loading={SplashScreen} persistor={persistor}>
           <Navigator />
         </PersistGate>
       </Provider>

@@ -11,6 +11,7 @@ import {
   TextInput,
   Button,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import ImagePicker from 'react-native-image-picker';
@@ -75,6 +76,7 @@ class AddNew extends Component {
       modalShown: false,
       picSource: '',
       text: '',
+      loading: false,
     };
   }
 
@@ -160,7 +162,7 @@ class AddNew extends Component {
     }
     let data = {
       latitude: this.state.marker.latitude,
-      longitude: this.state.marker.latitude,
+      longitude: this.state.marker.longitude,
       address: this.state.address,
       author: this.props.user.id,
       text: this.state.text,
@@ -177,6 +179,7 @@ class AddNew extends Component {
       name: 'imagename.jpg',
     });
 
+    this.setState({loading: true});
     fetch('http://192.168.3.7:8000/api/post/', {
       method: 'post',
       headers: {
@@ -187,6 +190,7 @@ class AddNew extends Component {
       body: formData,
     })
       .then(response => {
+        this.setState({loading: false});
         if (response.status === 200) {
           Alert.alert('Успех!', 'Пост добавлен', [
             {text: 'OK', onPress: () => this.props.navigation.goBack()},
@@ -194,6 +198,7 @@ class AddNew extends Component {
         }
       })
       .catch(err => {
+        this.setState({loading: false});
         alert('Ошибка загрузки поста!');
       });
   }
@@ -245,8 +250,9 @@ class AddNew extends Component {
         style={{position: 'absolute', left: 20, top: 20}}
       />
     );
-    return (
-      <View style={styles.container}>
+
+    var renderProp = (
+      <>
         <Modal
           isVisible={this.state.modalShown}
           onBackdropPress={() => this.setState({modalShown: false})}
@@ -275,13 +281,18 @@ class AddNew extends Component {
             </View>
           </View>
         </Modal>
-        <View style={{flexDirection:'row'}}>
-        {this.state.picSource === '' ? this.picker : this.photo()}
-        {this.state.errors.pic ? (
-          <Ionicons name="alert-circle-outline" color="red" size={30} style={{position: 'absolute', right: -30}}/>
-        ) : (
-          <></>
-        )}
+        <View style={{flexDirection: 'row'}}>
+          {this.state.picSource === '' ? this.picker : this.photo()}
+          {this.state.errors.pic ? (
+            <Ionicons
+              name="alert-circle-outline"
+              color="red"
+              size={30}
+              style={{position: 'absolute', right: -30}}
+            />
+          ) : (
+            <></>
+          )}
         </View>
         <View style={styles.text_input_container}>
           {/* add location button */}
@@ -344,6 +355,18 @@ class AddNew extends Component {
             />
           </View>
         </View>
+      </>
+    );
+
+    let animation = (
+      <View style={styles.animation_background}>
+        <ActivityIndicator size="large" color="#ffffff" />
+      </View>
+    );
+
+    return (
+      <View style={styles.container}>
+        {this.state.loading ? animation : renderProp}
       </View>
     );
   }
@@ -407,7 +430,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'gainsboro',
   },
   text_input_focused: {
-    width: '60%',
+    width: '70%',
     marginTop: 10,
     fontSize: 20,
     borderBottomWidth: 2,
@@ -424,7 +447,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'gainsboro',
   },
   address_input_focused: {
-    width: '70%',
+    width: '60%',
+    marginLeft: '15%',
     marginTop: 10,
     fontSize: 20,
     borderBottomWidth: 2,
@@ -432,6 +456,16 @@ const styles = StyleSheet.create({
   },
   button__container: {
     minWidth: 300,
+  },
+  animation_background: {
+    backgroundColor: 'rgba(0,0,0, 0.5)',
+    opacity: 60,
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    position: 'absolute',
+    justifyContent: 'center',
   },
 });
 

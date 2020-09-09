@@ -9,6 +9,8 @@ import {
 import AsyncStorage from '@react-native-community/async-storage';
 import {signOut} from '../Scripts/reducer';
 import {connect} from 'react-redux';
+import {NavigationActions} from 'react-navigation';
+import {useNavigation} from '@react-navigation/native';
 
 //TODO rework into searchbar
 class Header extends Component {
@@ -45,6 +47,7 @@ const styles = StyleSheet.create({
     height: 24,
     width: 24,
     margin: 16,
+    marginRight: 20,
   },
   container: {
     flexDirection: 'row',
@@ -62,6 +65,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'rubik-light',
     fontSize: 20,
+    marginLeft: 20,
     flex: 1,
     alignSelf: 'center',
   },

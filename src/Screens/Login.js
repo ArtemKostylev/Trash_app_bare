@@ -6,6 +6,7 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
+  TouchableOpacity,
 } from 'react-native';
 import {TouchableNativeFeedback} from 'react-native';
 import KeyboardShift from '../Components/KeyboardShift';
@@ -56,7 +57,7 @@ class Login extends Component {
     let login_screen = (
       <View style={styles.main_container}>
         <View style={styles.text_container}>
-          <Text style={styles.h1}>Добро пожаловать</Text>
+          <Text style={styles.h1}>Добро пожаловать!</Text>
           <Text style={styles.h2}>Пожалуйста, войдите в систему</Text>
         </View>
         <View style={styles.button_container}>
@@ -65,7 +66,7 @@ class Login extends Component {
             onFocus={() => this.setState({usernameFocused: true})}
             onBlur={() => this.setState({usernameFocused: false})}
             value={this.state.phone_number}
-            placeholder="Телефон"
+            placeholder="Имя пользователя"
             style={
               this.state.usernameFocused
                 ? styles.text_input_focused
@@ -85,11 +86,14 @@ class Login extends Component {
             }
           />
           <View style={styles.button}>
-            <TouchableNativeFeedback onPress={() => this.auth()}>
+            <TouchableOpacity onPress={() => this.auth()}>
               <Text style={styles.button_text}>Войти</Text>
-            </TouchableNativeFeedback>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.href}>Зарегистрироваться</Text>
+          <TouchableOpacity
+            onPress={() => this.props.navigation.navigate('Register')}>
+            <Text style={styles.href}>Зарегистрироваться</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -155,21 +159,24 @@ const styles = StyleSheet.create({
   },
   h2: {
     fontFamily: 'rubik-light',
-    fontSize: 16,
+    fontSize: 18,
   },
   button_container: {
     flex: 1,
     justifyContent: 'flex-start',
+    width: '60%',
+    alignItems: 'center',
   },
   href: {
     color: 'gray',
     borderBottomWidth: 2,
     borderBottomColor: 'gray',
     marginTop: 20,
+    width: '57%',
   },
   button: {
     height: 30,
-    marginTop: 10,
+    marginTop: 30,
     alignItems: 'center',
   },
   button_text: {
@@ -188,11 +195,13 @@ const styles = StyleSheet.create({
   },
   text_input_unfocused: {
     marginTop: 10,
+    width: '100%',
     borderBottomWidth: 2,
     borderBottomColor: 'gray',
   },
   text_input_focused: {
     marginTop: 10,
+    width: '100%',
     borderBottomWidth: 2,
     borderBottomColor: 'black',
   },

@@ -1,56 +1,98 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {Component} from 'react';
-import {View, StyleSheet, TextInput, Text, Button} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TextInput,
+  Text,
+  Button,
+  Image,
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
 import Header from '../Components/Header.js';
 import {connect} from 'react-redux';
-import {FlatList} from 'react-native-gesture-handler';
-import CardContainer from '../Components/CardContainer';
-import { saveUserData } from '../Scripts/reducer.js';
+import {deletePost, fetchPosts, signOut} from '../Scripts/reducer.js';
+import {baseURL} from '../../App.js';
 
 class Profile extends Component {
   constructor(props) {
     super(props);
+    this.renderItem = this.renderItem.bind(this);
     this.state = {
       ...this.props.user,
       edit: false,
       saving: false,
-      usernameFocused: false,
       nameFocused: false,
       surnameFocused: false,
     };
   }
 
-  async save() {
-    alert(0);
-    var user = {
-      phone_number: this.props.user.phone_number,
-      first_name: this.state.first_name,
-      last_name: this.state.last_name,
-    };
-    await this.props.saveUserData(this.props.token, user);
-    alert(1);
-    if (this.props.status !== 200) {
-      alert('Ошибка');
-    }
-    //upload data on server && show alert with save result && add callback with state change
+  async delete(id) {
+    await this.props.deletePost(this.props.token, id);
+    this.props.fetchPosts(this.props.token);
   }
 
-  changePassword() {
-    console.log('pwd button pressed');
-    //show change password modal component
+  logout() {
+    //this.props.navigation.reset({index: 0, routes: [{name: 'Auth'}]});
+    this.props.signOut();
+  }
+
+  header() {
+    return (
+      <View style={styles.header_container}>
+        <Text style={styles.title}>{this.props.title}</Text>
+        <TouchableOpacity onPress={this.logout.bind(this)} useForeground>
+          <Image
+            source={{uri: 'https://cdn.onlinewebfonts.com/svg/img_376300.png'}}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  renderItem(item) {
+    return (
+      <View
+        style={{
+          alignItems: 'flex-start',
+          backgroundColor: 'white',
+          justifyContent: 'center',
+          borderRadius: 5,
+          marginBottom: 20,
+          elevation: 2,
+        }}>
+        <Image
+          source={{uri: baseURL + item.image}}
+          style={{width: '100%', height: 200}}
+        />
+        <Text style={styles.cardTitle}>{`Адрес: ${item.address}`}</Text>
+        <Text style={styles.date}>{`Опубликовано ${item.created.substring(
+          10,
+          0,
+        )} в ${item.created.substring(19, 11)}`}</Text>
+        <Text style={styles.text}>{item.text}</Text>
+        <View style={styles.buttonContainer}>
+          <Button
+            onPress={() => this.delete(item.id)}
+            title="Удалить"
+            color="red"
+          />
+        </View>
+      </View>
+    );
   }
 
   render() {
-    return (
-      <View style={styles.container}>
-        <Header
-          navigator={this.props.navigation}
-          renderEdit={true}
-          title="Профиль"
-          edit={() => this.edit()}
-        />
+    var renderProp = (
+      <>
+        {this.header()}
         <View style={styles.info}>
           <Text style={styles.input_title}>Имя</Text>
           <TextInput
+            editable={false}
             ref={ref => (this.name = ref)}
             placeholder="Ваше имя"
             onBlur={() => this.setState({nameFocused: false})}
@@ -65,6 +107,7 @@ class Profile extends Component {
           />
           <Text style={styles.input_title}>Фамилия</Text>
           <TextInput
+            editable={false}
             ref={ref => (this.surname = ref)}
             placeholder="Ваша фамилия"
             onBlur={() => this.setState({surnameFocused: false})}
@@ -77,15 +120,31 @@ class Profile extends Component {
                 : styles.text_input_unfocused
             }
           />
-          <Button onPress={() => this.save()} title="Сохранить" />
+          <Text style={styles.list_title}>Ваши посты</Text>
+          <View style={styles.divider} />
           <FlatList
+            style={{flex: 1}}
             data={this.props.posts}
-            renderItem={({item}) => <CardContainer data={item} />}
+            renderItem={({item}) => {
+              if (this.state.id === item.author) {
+                return this.renderItem(item);
+              }
+            }}
             keyExtractor={item => item.id}
-            refreshing={this.state.refreshing}
-            onRefresh={() => this.onRefresh()}
           />
         </View>
+      </>
+    );
+
+    let animation = (
+      <View style={styles.animation_background}>
+        <ActivityIndicator size="large" color="#ffffff" />
+      </View>
+    );
+
+    return (
+      <View style={styles.container}>
+        {this.props.loading ? animation : renderProp}
       </View>
     );
   }
@@ -125,19 +184,63 @@ var styles = StyleSheet.create({
   input_title: {
     color: 'gray',
     fontSize: 18,
+    marginTop: 10,
   },
-  pwdButton: {
-    alignSelf: 'stretch',
-    marginHorizontal: 40,
-    marginVertical: 40,
-  },
-  pwdButtonText: {
-    fontFamily: 'rubik-medium',
-    fontSize: 20,
+  list_title: {
+    color: 'gray',
+    fontSize: 18,
+    marginTop: 10,
+    alignItems: 'center',
   },
   divider: {
-    backgroundColor: 'black',
+    backgroundColor: 'forestgreen',
     height: 2,
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontFamily: 'rubik',
+    fontWeight: '600',
+  },
+  date: {
+    fontSize: 15,
+    fontWeight: '200',
+    color: 'gray',
+  },
+  text: {
+    fontSize: 18,
+    fontWeight: '400',
+  },
+  buttonContainer: {
+    marginTop: 10,
+    width: '100%',
+  },
+  icon: {
+    height: 24,
+    width: 24,
+    margin: 16,
+    marginRight: 20,
+  },
+  header_container: {
+    flexDirection: 'row',
+    flexShrink: 0,
+    alignSelf: 'stretch',
+    height: 56,
+    backgroundColor: 'white',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.8,
+    shadowRadius: 1,
+    elevation: 3,
+  },
+  title: {
+    fontFamily: 'rubik-light',
+    fontSize: 20,
+    marginLeft: 20,
+    flex: 1,
+    alignSelf: 'center',
   },
 });
 
@@ -146,11 +249,15 @@ const mapStateToProps = state => {
     user: state.user,
     token: state.token,
     status: state.status,
+    posts: state.posts,
+    loading: state.loading,
   };
 };
 
 const mapDispatchToProps = {
-  saveUserData: saveUserData,
+  deletePost: deletePost,
+  fetchPosts: fetchPosts,
+  signOut,
 };
 
 export default connect(

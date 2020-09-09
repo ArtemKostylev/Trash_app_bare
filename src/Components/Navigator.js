@@ -1,10 +1,7 @@
 import React, {Component} from 'react';
 
-import News from '../Screens/News';
 import Profile from '../Screens/Profile';
 import Login from '../Screens/Login';
-import SplashScreen from '../Screens/SplashScreen';
-import CardFull from '../Screens/CardFull';
 import MapComponent from '../Screens/Map';
 
 import {NavigationContainer} from '@react-navigation/native';
@@ -13,12 +10,13 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {connect} from 'react-redux';
 import AddNew from '../Screens/AddNew';
+import Register from '../Screens/Register';
 
 const Tab = createBottomTabNavigator();
 
 const Stack = createStackNavigator();
 
-const NwStack = createStackNavigator();
+const AuthStack = createStackNavigator();
 
 function Home() {
   return (
@@ -50,10 +48,10 @@ function Home() {
         keyboardHidesTabBar: true,
       }}>
       <Tab.Screen
-        name="News"
-        component={NwScreen}
+        name="Profile"
+        component={Profile}
         options={{
-          tabBarLabel: 'Новости',
+          tabBarLabel: 'Профиль',
         }}
       />
       <Tab.Screen
@@ -61,13 +59,6 @@ function Home() {
         component={MapComponent}
         options={{
           tabBarLabel: 'Карта',
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={Profile}
-        options={{
-          tabBarLabel: 'Профиль',
         }}
       />
       <Tab.Screen
@@ -79,31 +70,32 @@ function Home() {
   );
 }
 
-function NwScreen() {
+function Auth() {
   return (
-    <>
-      <NwStack.Screen name="List" component={News} />
-      <NwStack.Screen name="Single" component={CardFull} />
-    </>
+    <AuthStack.Navigator>
+      <AuthStack.Screen
+        name="Login"
+        component={Login}
+        options={{headerShown: false}}
+      />
+      <AuthStack.Screen
+        name="Register"
+        component={Register}
+        options={{headerShown: false}}
+      />
+    </AuthStack.Navigator>
   );
 }
 
-//TODO Add icons and text to tabs
 class MyNavigator extends Component {
   render() {
     return (
       <NavigationContainer>
         <Stack.Navigator>
-          {this.props.isLoading === true ? (
+          {!this.props.loggedIn ? (
             <Stack.Screen
-              name="SplashScreen"
-              component={SplashScreen}
-              options={{headerShown: false}}
-            />
-          ) : !this.props.loggedIn ? (
-            <Stack.Screen
-              name="Login"
-              component={Login}
+              name="Auth"
+              component={Auth}
               options={{headerShown: false}}
             />
           ) : (
