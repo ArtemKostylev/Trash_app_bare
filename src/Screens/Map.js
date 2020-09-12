@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import {
   View,
   StyleSheet,
@@ -9,13 +9,14 @@ import {
   Image,
 } from 'react-native';
 
-import {Marker, AnimatedRegion, Animated} from 'react-native-maps';
+import { Marker, AnimatedRegion, Animated } from 'react-native-maps';
 import Modal from 'react-native-modal';
 import Carousel from 'react-native-snap-carousel';
 import Geocoder from 'react-native-geocoding';
-import {connect} from 'react-redux';
-import {fetchPosts} from '../Scripts/reducer';
-import {baseURL} from '../../App';
+import { connect } from 'react-redux';
+import { fetchPosts } from '../Scripts/reducer';
+import { baseURL } from '../../App';
+import { useFocusEffect } from '@react-navigation/native';
 
 const SLIDER_WIDTH = Dimensions.get('window').width;
 const ITEM_WIDTH = Math.round(SLIDER_WIDTH * 0.7);
@@ -38,16 +39,21 @@ class MapComponent extends Component {
         longitudeDelta: initialRegion.longitudeDelta,
       }),
       currentIndex: 0,
-      item: this.props.posts[0] === undefined ? this.props.posts[0] : null,
+      item: {
+        image: '',
+        address: '',
+        created: '',
+        text: '',
+      },
       modalShown: false,
     };
   }
 
   componentDidMount() {
-    Geocoder.init('AIzaSyD_OTKqeqysKfFsLTyLpubBEsFIPQEfztQ', {language: 'ru'});
+    Geocoder.init('AIzaSyD_OTKqeqysKfFsLTyLpubBEsFIPQEfztQ', { language: 'ru' });
     this.props.fetchPosts(this.props.token).then(() => {
-      const {region} = this.state;
-      const {latitude, longitude} = this.props.posts[0];
+      const { region } = this.state;
+      const { latitude, longitude } = this.props.posts[0];
 
       region
         .timing({
@@ -59,8 +65,8 @@ class MapComponent extends Component {
   }
 
   onSnapToItem(index) {
-    const {region} = this.state;
-    const {latitude, longitude} = this.props.posts[index];
+    const { region } = this.state;
+    const { latitude, longitude } = this.props.posts[index];
 
     region
       .timing({
@@ -75,7 +81,7 @@ class MapComponent extends Component {
   }
 
   onRegionChange(region) {
-    this.setState({region});
+    this.setState({ region });
   }
 
   onCardPress(item) {
@@ -85,49 +91,17 @@ class MapComponent extends Component {
     });
   }
 
-  _renderItem = ({item, index}) => {
+  _renderItem = ({ item, index }) => {
     return (
       <View style={styles.renderItem}>
         <TouchableOpacity
           onPress={() => this.onCardPress(item)}
-          style={{height: '100%', width: '100%'}}>
+          style={{ height: '100%', width: '100%' }}>
           <Text style={styles.renderItemHeader}>{item.address}</Text>
-          <Text style={{marginTop: 10, color: 'gray'}}>{item.text}</Text>
+          <Text style={{ marginTop: 10, color: 'gray' }}>{item.text}</Text>
         </TouchableOpacity>
       </View>
     );
-  };
-
-  modal = () => {
-    if (this.state.item === undefined) {
-      return (
-        <View
-          style={{
-            alignItems: 'flex-start',
-            backgroundColor: 'white',
-            justifyContent: 'center',
-            borderRadius: 5,
-          }}>
-          <Image
-            source={{uri: baseURL + this.state.item.image}}
-            style={{width: '100%', height: 300}}
-          />
-          <Text style={styles.cardTitle}>{`Адрес: ${
-            this.state.item.address
-          }`}</Text>
-          <Text
-            style={
-              styles.date
-            }>{`Опубликовано ${this.state.item.created.substring(
-            10,
-            0,
-          )} в ${this.state.item.created.substring(19, 11)}`}</Text>
-          <Text style={styles.text}>{this.state.item.text}</Text>
-        </View>
-      );
-    } else {
-      return <> </>;
-    }
   };
 
   render() {
@@ -135,8 +109,28 @@ class MapComponent extends Component {
       <>
         <Modal
           isVisible={this.state.modalShown}
-          onBackdropPress={() => this.setState({modalShown: false})}>
-          {this.modal}
+          onBackdropPress={() => this.setState({ modalShown: false })}>
+          <View
+            style={{
+              alignItems: 'flex-start',
+              backgroundColor: 'white',
+              justifyContent: 'center',
+              borderRadius: 5,
+            }}>
+            <Image
+              source={{ uri: baseURL + this.state.item.image }}
+              style={{ width: '100%', height: 300 }}
+            />
+            <Text style={styles.cardTitle}>{`Адрес: ${
+              this.state.item.address
+              }`}</Text>
+            <Text
+              style={styles.date}>{`Опубликовано ${this.state.item.created.substring(
+                10,
+                0,
+              )} в ${this.state.item.created.substring(19, 11)}`}</Text>
+            <Text style={styles.text}>{this.state.item.text}</Text>
+          </View>
         </Modal>
         <Animated
           style={styles.map}
@@ -158,7 +152,7 @@ class MapComponent extends Component {
             />
           ))}
         </Animated>
-        <View style={{height: 200}}>
+        <View style={{ height: 200 }}>
           <Carousel
             layout={'default'}
             ref={ref => (this.carousel = ref)}

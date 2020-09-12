@@ -78,6 +78,7 @@ class Login extends Component {
             onFocus={() => this.setState({passwordFocused: true})}
             onBlur={() => this.setState({passwordFocused: false})}
             value={this.state.password}
+            secureTextEntry={true}
             placeholder="Пароль"
             style={
               this.state.passwordFocused
@@ -196,12 +197,14 @@ const styles = StyleSheet.create({
   text_input_unfocused: {
     marginTop: 10,
     width: '100%',
+    fontSize: 20,
     borderBottomWidth: 2,
     borderBottomColor: 'gray',
   },
   text_input_focused: {
     marginTop: 10,
     width: '100%',
+    fontSize: 20,
     borderBottomWidth: 2,
     borderBottomColor: 'black',
   },

@@ -14,7 +14,7 @@ import {composeWithDevTools} from 'redux-devtools-extension';
 
 import Navigator from './src/Components/Navigator';
 import SplashScreen from './src/Screens/SplashScreen';
-export const baseURL = 'http://192.168.3.7:8000';
+export const baseURL = 'http://134.0.117.159';
 
 console.disableYellowBox = true;
 

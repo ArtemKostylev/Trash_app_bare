@@ -42,7 +42,7 @@ class Profile extends Component {
   header() {
     return (
       <View style={styles.header_container}>
-        <Text style={styles.title}>{this.props.title}</Text>
+        <Text style={styles.title}>{'Профиль'}</Text>
         <TouchableOpacity onPress={this.logout.bind(this)} useForeground>
           <Image
             source={{uri: 'https://cdn.onlinewebfonts.com/svg/img_376300.png'}}

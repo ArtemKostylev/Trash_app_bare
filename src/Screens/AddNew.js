@@ -22,6 +22,7 @@ import {connect} from 'react-redux';
 import GetLocation from 'react-native-get-location';
 import Geocoder from 'react-native-geocoding';
 import {createPost} from '../Scripts/reducer';
+import {baseURL} from '../../App';
 
 class MyButton extends Component {
   image = (
@@ -180,7 +181,7 @@ class AddNew extends Component {
     });
 
     this.setState({loading: true});
-    fetch('http://192.168.3.7:8000/api/post/', {
+    fetch(baseURL + '/api/post/', {
       method: 'post',
       headers: {
         'Content-Type':
@@ -200,6 +201,7 @@ class AddNew extends Component {
       .catch(err => {
         this.setState({loading: false});
         alert('Ошибка загрузки поста!');
+        console.log(err);
       });
   }
 
@@ -295,7 +297,6 @@ class AddNew extends Component {
           )}
         </View>
         <View style={styles.text_input_container}>
-          {/* add location button */}
           <View
             style={{
               flexDirection: 'row',
